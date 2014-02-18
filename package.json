@@ -1,0 +1,17 @@
+{
+  "name": "firefox-puppeteer",
+  "title": "Firefox Puppeteer",
+  "id": "firefox-puppeteer@mozaddons.owlfolio.org",
+  "description": "Minimal, highly specialized Firefox puppetry extension.",
+  "author": "Zack Weinberg (https://www.owlfolio.org/) <zackw@panix.com>",
+  "contributors": ["Ethan",
+                   "Étienne Deparis",
+                   "Ian Shannon",
+                   "Luca Greco",
+                   "Massimiliano Mirra",
+                   "Artur Brugeman",
+                   "and others"],
+  "homepage": "https://github.com/zackw/firefox-puppeteer",
+  "license": "GPL 3.0+",
+  "version": "0.1"
+}
