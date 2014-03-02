@@ -22,37 +22,37 @@ This extension has no in-browser user interface.  You are expected to
 stick the `.xpi` file in a dedicated Firefox profile and then start
 the browser with a command line of the form
 
-    .../path/to/firefox -profile .../path/to/profile -puppeteer-socket NNNN
+    PUPPETEER_SOCKET=NNNN .../path/to/firefox -profile .../path/to/profile
 
 where `NNNN` is a port number.  If you don't start the browser with
-the `-puppeteer-socket` option, the extension does nothing.  You may
-additionally specify `-puppeteer-log FILE` where `FILE` is an absolute
-pathname; if you do, everything sent or received on the control socket
-(see below) will be logged to that file.
+the `PUPPETEER_SOCKET` environment variable set, the extension does
+nothing.  You may additionally set the `PUPPETEER_LOG` environment
+variable to an absolute pathname; if you do, everything sent or
+received on the control socket (see below) will be logged to that
+file.  (Environment variables are used instead of command line options
+because the [Add-on SDK][] currently doesn't support command line
+options.)
 
-When started with the appropriate options, the extension waits until
-Firefox is fully spun up (specifically, until the
-[`final-ui-startup` category notification][startup] fires) and then
-makes a loopback TCP connection to the port number specified on the
-command line.  (There is no way to get it to connect to a remote host;
-use SSH port forwarding or suchlike instead.)  The server on the other
-end of the socket is expected to speak the [ØMQ][zeromq] wire
-protocol; the extension interacts with it as a
-[`ZMQ_REQ`-type client][zeromq:req].
+When started with a `PUPPETEER_SOCKET` declared in the environment,
+the extension waits until Firefox is fully spun up (specifically,
+until the first time a tab reports it is fully loaded; you probably
+want to set the default homepage in the dedicated profile to be
+`about:blank` to expedite this).  It then makes a loopback TCP
+connection to the port number specified in the environment variable.
+(There is no way to get it to connect to a remote host; use SSH port
+forwarding or suchlike instead.)  The server on the other end of the
+socket is expected to speak the [ØMQ][zeromq] wire protocol; the
+extension interacts with it as a [`ZMQ_REQ`-type client][zeromq:req].
 
-Upon connection, the server supplies an arbitrary JavaScript program
-which defines what the puppeted browser actually *does*.  There's a
-bit of a client-side framework to ensure sane message framing and make
-it easy to not get hung up waiting for the UI thread or vice versa,
-but it's technically all optional.
+Upon connection, the server supplies a JavaScript program which
+defines what the puppeted browser actually *does*, using the client
+API described below.
 
 ## The control protocol
 
-If you use the stock client-side framework, which is mandatory for the
-initial message to the server and its reply, optional thereafter, all
-messages on the wire (after stripping the ØMQ framing) are JavaScript
-objects, JSON-formatted and UTF-8-coded.  All client-generated
-messages have the general format
+All messages on the wire (after stripping the ØMQ framing) are
+JavaScript objects, JSON-formatted and UTF-8-coded.  All
+client-generated messages have the general format
 
     { "client_id": string,
       "sequence":  non-negative integer,
@@ -92,11 +92,11 @@ the previous client-to-server message; this is for debugging.  Like
 two predefined values:
 
 * `script`: The object must also contain a `script` property.  Its
-  value will be executed as JavaScript in the context of the
-  extension.  This script MUST, as a side effect, cause another
-  client-to-server message to be generated, using the API described
-  below; otherwise, the extension will stop doing anything useful and
-  the connection will go idle forever.
+  value will be executed as JavaScript in a special chrome-privileged
+  sandbox that exposes the API defined below.  This script MUST, as a
+  side effect, cause another client-to-server message to be generated,
+  using that API; otherwise, the extension will stop doing anything
+  useful and the connection will go idle forever.
 
 * `quit`: No other properties are required.  The browser will exit.
 
@@ -136,6 +136,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 [MozRepl]: https://github.com/bard/mozrepl/wiki
-[startup]: https://developer.mozilla.org/en-US/docs/Mozilla/XPCOM/Receiving_startup_notifications
+[Add-on SDK]: https://developer.mozilla.org/en-US/Add-ons/SDK
 [zeromq]: http://zeromq.org/
 [zeromq:req]: http://api.zeromq.org/3-2:zmq-socket#toc3
