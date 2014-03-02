@@ -51,8 +51,8 @@ but it's technically all optional.
 If you use the stock client-side framework, which is mandatory for the
 initial message to the server and its reply, optional thereafter, all
 messages on the wire (after stripping the ØMQ framing) are JavaScript
-objects, JSON-formatted, UTF-8-coded, and deflate-compressed.  All
-client-generated messages have the general format
+objects, JSON-formatted and UTF-8-coded.  All client-generated
+messages have the general format
 
     { "client_id": string,
       "sequence":  non-negative integer,
